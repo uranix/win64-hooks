@@ -36,7 +36,7 @@ struct JmpInstr {
         Bytes<SIZE> ret(memp);
         u8 *mem = reinterpret_cast<u8 *>(memp);
         mem[0] = 0xe9;
-		memcpy(mem + 1, &dist, 4);
+        memcpy(mem + 1, &dist, 4);
         return ret;
     }
 };
@@ -82,9 +82,9 @@ private:
     void spoofRet(u64 *pret);
     void restoreRet(u64 *pret);
     virtual void onEnter(Context *ctx, u64 *pret);
-	virtual void onLeave(Context *ctx, u64 *pret);
+    virtual void onLeave(Context *ctx, u64 *pret);
 public:
-	virtual void enter(Context *) = 0;
-	virtual void leave(Context *) = 0;
+    virtual void enter(Context *) = 0;
+    virtual void leave(Context *) = 0;
 };
 

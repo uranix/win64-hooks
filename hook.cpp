@@ -88,7 +88,7 @@ void Hook::onEnter(Hook::Context *ctx, u64 *pret) {
 
 void Hook::onLeave(Hook::Context *ctx, u64 *pret) {
     restoreRet(pret);
-	leave(ctx);
+    leave(ctx);
     patchStart();
 }
 

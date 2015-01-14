@@ -1,0 +1,6 @@
+*.suo
+*.ncb
+*.sdf
+Debug
+Release
+x64
