@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HookDll", "Hook.vcxproj", "{213E2336-BEFB-4489-991B-3CCBD7A9B236}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Driver", "Driver.vcxproj", "{6A021F92-8F46-4D68-B8F6-513320DC1BDB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{213E2336-BEFB-4489-991B-3CCBD7A9B236} = {213E2336-BEFB-4489-991B-3CCBD7A9B236}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
