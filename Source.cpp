@@ -9,13 +9,13 @@ int foo(int x, int y, int z) {
     return z;
 }
 
-int baz(int r) {
+int __declspec(noinline) baz(int r) {
     return r * r;
 }
 
 int bar(int z) {
     int a = 10;
-    int b = 41;
+    volatile int b = 41;
 
     b = baz(b);
 
