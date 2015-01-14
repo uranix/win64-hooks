@@ -5,8 +5,6 @@
 #include <cstdlib>
 #include <string>
 
-#include "hook_bytes.h"
-
 u32 Hook::unprotect() const {
     DWORD oldflags, flags;
     flags = PAGE_EXECUTE_READWRITE;
@@ -19,34 +17,36 @@ void Hook::protect(u32 flags) const {
     VirtualProtect(addr, JmpInstr::SIZE, flags, &oldflags);
 }
 
+static LPVOID GetNextFreePage(LPVOID addr) {
+	MEMORY_BASIC_INFORMATION mbi;
+	u8 *allocat = static_cast<u8 *>(addr);
+	u64 gran = 0x10000;
+	do {
+		u64 p = reinterpret_cast<u64>(allocat);
+		p--;
+		p |= (gran - 1);
+		p++;
+		allocat = reinterpret_cast<u8 *>(p);
+		size_t ret = VirtualQuery(allocat, &mbi, sizeof(mbi));
+		if (ret == 0)
+			throw std::out_of_range("Could not find suitable page");
+		if (mbi.State == MEM_FREE)
+			break;
+		allocat = static_cast<u8 *>(mbi.BaseAddress) + mbi.RegionSize;
+	} while (true);
+	return allocat;
+}
+
 Hook::Hook(void *addr) : addr(addr) {
     try {
-        MEMORY_BASIC_INFORMATION mbi;
-        u8 *allocat = static_cast<u8 *>(addr);
-        u64 gran = 0x10000;
-        do {
-            u64 p = reinterpret_cast<u64>(allocat);
-            p--;
-            p |= (gran - 1);
-            p++;
-            allocat = reinterpret_cast<u8 *>(p);
-            size_t ret = VirtualQuery(allocat, &mbi, sizeof(mbi));
-            if (ret == 0)
-                throw std::out_of_range("Could not find suitable page");
-            if (mbi.State == MEM_FREE)
-                break;
-            allocat = static_cast<u8 *>(mbi.BaseAddress) + mbi.RegionSize;
-        } while (true);
-        extend = (u8 *)VirtualAlloc(allocat, 0x1000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+        extend = VirtualAlloc(GetNextFreePage(addr), 0x1000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
         if (!extend) {
             throw std::out_of_range(std::string("VirtualAlloc failed: ") + std::to_string(GetLastError()));
         }
-        memcpy(extend, data, sizeof(data));
-        *reinterpret_cast<void **>(extend + THIS1) = this;
-        *reinterpret_cast<void **>(extend + THIS2) = this;
-        hook2extend = std::unique_ptr<JmpInstr>(new JmpInstr(reinterpret_cast<u64>(addr), reinterpret_cast<u64>(extend)));
-        JmpInstr extend2hook(reinterpret_cast<u64>(extend + JMPADDR1), reinterpret_cast<u64>(addr));
-        extend2hook.write(extend + JMPADDR1);
+        memcpy(extend, headerPtr, allSize);
+		static_cast<Header *>(extend)->origEntry = addr;
+		static_cast<Header *>(extend)->thisValue = this;
+        hook2extend = std::unique_ptr<JmpInstr>(new JmpInstr(reinterpret_cast<u64>(addr), reinterpret_cast<u64>(extend) + entryOffs));
         patchStart();
     } catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
@@ -73,7 +73,7 @@ void Hook::restoreStart() {
 
 void Hook::spoofRet(u64 *pret) {
     oldret = *pret;
-    *pret = reinterpret_cast<u64>(extend + RETBLOCK);
+	*pret = reinterpret_cast<u64>(extend) + leaveOffs;
 }
 
 void Hook::restoreRet(u64 *pret) {

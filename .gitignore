@@ -1,6 +1,7 @@
 *.suo
 *.ncb
 *.sdf
+*.opensdf
 Debug
 Release
 x64

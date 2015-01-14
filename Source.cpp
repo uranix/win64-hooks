@@ -9,9 +9,15 @@ int foo(int x, int y, int z) {
     return z;
 }
 
+int baz(int r) {
+	return r * r;
+}
+
 int bar(int z) {
     int a = 10;
     int b = 41;
+
+	b = baz(b);
 
     return foo(a, b, z);
 }
@@ -19,7 +25,7 @@ int bar(int z) {
 #include <iostream>
 
 struct HookFoo : public Hook {
-    HookFoo(void *p) : Hook(p) { }
+    HookFoo() : Hook(foo) { }
     virtual void enter(Context *ctx) override {
         std::cout << "foo(" << ctx->rcx << ", " << ctx->rdx << ", " << ctx->r8 << ")";
     }
@@ -29,8 +35,22 @@ struct HookFoo : public Hook {
     }
 };
 
+struct HookBaz : public Hook {
+	int cnt;
+	HookBaz() : Hook(baz), cnt(0) { }
+	virtual void enter(Context *ctx) override {
+		std::cout << "baz(" << ctx->rcx << ")";
+		ctx->rcx += cnt;
+		cnt++;
+	}
+	virtual void leave(Context *ctx) override {
+		std::cout << " = " << ctx->rax << std::endl;
+	}
+};
+
 int main() {
-    HookFoo m(foo);
+    HookFoo h1;
+	HookBaz h2;
     std::cout << "Bar = " << bar(0) << std::endl;
     std::cout << "Bar = " << bar(1) << std::endl;
     std::cout << "Bar = " << bar(2) << std::endl;

@@ -26,8 +26,13 @@
     <ClInclude Include="hook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hook_bytes.h">
+    <ClInclude Include="hook_asm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="hook_raw.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

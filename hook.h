@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hook_asm.h"
+
 #include <memory>
 
 #include <cstdint>
@@ -63,7 +65,8 @@ public:
         u64 rsp;
     };
 private:
-    u8 *extend;
+
+    void *extend;
     u64 oldret;
     void *addr;
 
