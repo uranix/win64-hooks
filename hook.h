@@ -90,4 +90,3 @@ public:
     virtual void enter(Context *) = 0;
     virtual void leave(Context *) = 0;
 };
-

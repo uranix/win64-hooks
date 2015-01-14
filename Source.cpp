@@ -10,14 +10,14 @@ int foo(int x, int y, int z) {
 }
 
 int baz(int r) {
-	return r * r;
+    return r * r;
 }
 
 int bar(int z) {
     int a = 10;
     int b = 41;
 
-	b = baz(b);
+    b = baz(b);
 
     return foo(a, b, z);
 }
@@ -36,21 +36,21 @@ struct HookFoo : public Hook {
 };
 
 struct HookBaz : public Hook {
-	int cnt;
-	HookBaz() : Hook(baz), cnt(0) { }
-	virtual void enter(Context *ctx) override {
-		std::cout << "baz(" << ctx->rcx << ")";
-		ctx->rcx += cnt;
-		cnt++;
-	}
-	virtual void leave(Context *ctx) override {
-		std::cout << " = " << ctx->rax << std::endl;
-	}
+    int cnt;
+    HookBaz() : Hook(baz), cnt(0) { }
+    virtual void enter(Context *ctx) override {
+        std::cout << "baz(" << ctx->rcx << ")";
+        ctx->rcx += cnt;
+        cnt++;
+    }
+    virtual void leave(Context *ctx) override {
+        std::cout << " = " << ctx->rax << std::endl;
+    }
 };
 
 int main() {
     HookFoo h1;
-	HookBaz h2;
+    HookBaz h2;
     std::cout << "Bar = " << bar(0) << std::endl;
     std::cout << "Bar = " << bar(1) << std::endl;
     std::cout << "Bar = " << bar(2) << std::endl;

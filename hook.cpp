@@ -18,23 +18,23 @@ void Hook::protect(u32 flags) const {
 }
 
 static LPVOID GetNextFreePage(LPVOID addr) {
-	MEMORY_BASIC_INFORMATION mbi;
-	u8 *allocat = static_cast<u8 *>(addr);
-	u64 gran = 0x10000;
-	do {
-		u64 p = reinterpret_cast<u64>(allocat);
-		p--;
-		p |= (gran - 1);
-		p++;
-		allocat = reinterpret_cast<u8 *>(p);
-		size_t ret = VirtualQuery(allocat, &mbi, sizeof(mbi));
-		if (ret == 0)
-			throw std::out_of_range("Could not find suitable page");
-		if (mbi.State == MEM_FREE)
-			break;
-		allocat = static_cast<u8 *>(mbi.BaseAddress) + mbi.RegionSize;
-	} while (true);
-	return allocat;
+    MEMORY_BASIC_INFORMATION mbi;
+    u8 *allocat = static_cast<u8 *>(addr);
+    u64 gran = 0x10000;
+    do {
+        u64 p = reinterpret_cast<u64>(allocat);
+        p--;
+        p |= (gran - 1);
+        p++;
+        allocat = reinterpret_cast<u8 *>(p);
+        size_t ret = VirtualQuery(allocat, &mbi, sizeof(mbi));
+        if (ret == 0)
+            throw std::out_of_range("Could not find suitable page");
+        if (mbi.State == MEM_FREE)
+            break;
+        allocat = static_cast<u8 *>(mbi.BaseAddress) + mbi.RegionSize;
+    } while (true);
+    return allocat;
 }
 
 Hook::Hook(void *addr) : addr(addr) {
@@ -44,8 +44,8 @@ Hook::Hook(void *addr) : addr(addr) {
             throw std::out_of_range(std::string("VirtualAlloc failed: ") + std::to_string(GetLastError()));
         }
         memcpy(extend, headerPtr, allSize);
-		static_cast<Header *>(extend)->origEntry = addr;
-		static_cast<Header *>(extend)->thisValue = this;
+        static_cast<Header *>(extend)->origEntry = addr;
+        static_cast<Header *>(extend)->thisValue = this;
         hook2extend = std::unique_ptr<JmpInstr>(new JmpInstr(reinterpret_cast<u64>(addr), reinterpret_cast<u64>(extend) + entryOffs));
         patchStart();
     } catch (std::exception &e) {
@@ -73,7 +73,7 @@ void Hook::restoreStart() {
 
 void Hook::spoofRet(u64 *pret) {
     oldret = *pret;
-	*pret = reinterpret_cast<u64>(extend) + leaveOffs;
+    *pret = reinterpret_cast<u64>(extend) + leaveOffs;
 }
 
 void Hook::restoreRet(u64 *pret) {

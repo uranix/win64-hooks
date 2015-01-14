@@ -3,8 +3,8 @@
 #include <cstdint>
 
 typedef struct Header{
-	void *thisValue;
-	void *origEntry;
+    void *thisValue;
+    void *origEntry;
 } header_t;
 
 extern "C" header_t *headerPtr;
