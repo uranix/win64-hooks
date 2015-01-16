@@ -9,6 +9,10 @@
 #include <memory>
 #include <cstdint>
 
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#include <Windows.h>
+
 typedef  uint8_t u8;
 typedef uint32_t u32;
 typedef uint64_t u64;
@@ -57,14 +61,15 @@ struct Context {
 struct JmpInstr;
 
 struct HookBase {
+    std::unique_ptr<CRITICAL_SECTION> cs;
     void *extend;
     u64 oldret;
     void *addr;
+    volatile bool exiting;
 
     std::unique_ptr<JmpInstr> hook2extend;
 
     Bytes<JmpInstr::SIZE> stolen;
-
     u32 unprotect() const;
     void protect(u32 flags) const;
     void patchStart();

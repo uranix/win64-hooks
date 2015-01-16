@@ -1,7 +1,6 @@
 #include "hook.h"
 #include "hook_asm.h"
 
-#include <Windows.h>
 #include <cstdlib>
 
 JmpInstr::JmpInstr(u64 from, u64 to) {
@@ -52,6 +51,9 @@ static LPVOID GetNextFreePage(LPVOID addr) {
 
 Hook::Hook(void *addr) {
     this->addr = addr;
+    cs = std::make_unique<CRITICAL_SECTION>();
+    InitializeCriticalSection(cs.get());
+    exiting = false;
     try {
         extend = VirtualAlloc(GetNextFreePage(addr), 0x1000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
         if (!extend) {
@@ -60,7 +62,7 @@ Hook::Hook(void *addr) {
         memcpy(extend, headerPtr, allSize);
         static_cast<Header *>(extend)->origEntry = addr;
         static_cast<Header *>(extend)->thisValue = this;
-        hook2extend = std::unique_ptr<JmpInstr>(new JmpInstr(reinterpret_cast<u64>(addr), reinterpret_cast<u64>(extend) + entryOffs));
+        hook2extend = std::make_unique<JmpInstr>(reinterpret_cast<u64>(addr), reinterpret_cast<u64>(extend) + entryOffs);
         patchStart();
     } catch (...) {
         abort();
@@ -68,7 +70,12 @@ Hook::Hook(void *addr) {
 }
 
 Hook::~Hook() {
+    exiting = true;
+    Sleep(50);
     restoreStart();
+    Sleep(50);
+    DeleteCriticalSection(cs.get());
+    cs.release();
     VirtualFree(extend, 0, MEM_RELEASE);
 }
 
@@ -94,6 +101,7 @@ void HookBase::restoreRet(u64 *pret) {
 }
 
 void Hook::onEnter(Context *ctx, u64 *pret) {
+    EnterCriticalSection(cs.get());
     restoreStart();
     enter(ctx);
     spoofRet(pret);
@@ -102,7 +110,9 @@ void Hook::onEnter(Context *ctx, u64 *pret) {
 void Hook::onLeave(Context *ctx, u64 *pret) {
     restoreRet(pret);
     leave(ctx);
-    patchStart();
+    if (!exiting)
+        patchStart();
+    LeaveCriticalSection(cs.get());
 }
 
 
